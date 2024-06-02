@@ -27,6 +27,10 @@ def index(request):
     logger.warning('This is a warning message')
     logger.error('This is an error message')
     logger.critical('This is a critical message')
+    """for p in Product.objects.filter(target_link = 'None'):
+        p.target_link = None
+        p.save()
+    print(timezone.now() - datetime.timedelta(hours=1),timezone.now() )"""
     return render(request, 'Mpage.html',)
 
 
@@ -46,10 +50,13 @@ def logs(request):
 @login_required(login_url="/accounts/login/")
 def dashboard(request):
 
-    p = Product.objects.filter(crawl_status = 'Success')
-    success_num = len(p)
+    success_num = Product.objects.filter(crawl_status = 'Success').count()
+    error_num = Product.objects.exclude(crawl_status__in = ['Success' , 'Call Us Price']).count()
+    callus_num = Product.objects.filter(crawl_status = 'Call Us Price').count()
     context ={
-        'success_num': success_num
+        'success_num': success_num,
+        'error_num': error_num,
+        'callus_num': callus_num,
     }
     return render(request, 'index.html',context)
 
@@ -84,47 +91,7 @@ def update_product(request):
     return JsonResponse({'success': True})
 
 # Define a function to scrape the price from a given URL and save HTML to a file
-def scrape_price(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            price = None
-            # Check the website domain and extract the price accordingly
-            if "https://www.afrangdigital.com/" in url:
-                price_element = soup.find('span', itemprop='price')
-                if price_element:
-                    price = price_element.get_text(strip=True)
-                    if price != 'تماس بگیرید':
-                        price = price.replace('ریال', '').replace(',', '').strip()
-                        price = price[0:len(price)-1]
-                    else:
-                        price = 'CallUs'
-            elif "https://noornegar.com/" in url:
-                product_box = soup.find('div', class_ = 'products-inner')
-                soup = product_box
-                price_element = soup.find('span', class_='woocommerce-Price-amount')
-                if price_element:
-                    price = price_element.find('bdi').get_text(strip=True)
-                    if price:
-                        price = price.replace('تومان', '').replace(',', '').strip()
-                        price = translate_persian_numerals_to_latin(price)
-                else:
-                    price = 'CallUs'
-            elif "https://www.didnegar.com/" in url:
-                product_box = soup.find('div', class_ = 'woocommerce-main-3-row-single')
-                soup = product_box
-                price_element = soup.find('span', class_='woocommerce-Price-amount')
-                if price_element:
-                    price = price_element.get_text(strip=True)
-                    if price:
-                        price = price.replace('تومان', '').replace(',', '').strip()
-                        price = translate_persian_numerals_to_latin(price)
-                else:
-                    price = 'CallUs'
-            return price
-    except Exception as e:
-        return 'error {e}'
+
 def scrape_done(request):
 
     products = Product.objects.exclude(crawl_status = 'Success')
@@ -133,65 +100,126 @@ def scrape_done(request):
     return render(request, 'no_price.html', {'products': products})
 
 
-
+def scrape_price(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            price = None
+            if "https://www.afrangdigital.com/" in url:
+                price_element = soup.find('span', itemprop='price')
+                if price_element:
+                    price = price_element.get_text(strip=True)
+                    if price != 'تماس بگیرید':
+                        price = price.replace('ریال', '').replace(',', '').strip()[:-1]
+                    else:
+                        price = 'CallUs'
+            elif "https://noornegar.com/" in url or "https://www.didnegar.com/" in url:
+                product_box = soup.find('div', class_='products-inner') if "https://noornegar.com/" in url else soup.find('div', class_='woocommerce-main-3-row-single')
+                price_element = product_box.find('span', class_='woocommerce-Price-amount') if product_box else None
+                if price_element:
+                    price = price_element.find('bdi').get_text(strip=True)
+                    if price:
+                        price = translate_persian_numerals_to_latin(price.replace('تومان', '').replace(',', '').strip())
+                else:
+                    price = 'CallUs'
+            return price
+    except Exception as e:
+        return f'error {e}'
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from django.utils import timezone
+import datetime
 
 @login_required(login_url="/accounts/login/")
 def scrap_update_all_prices(request):
-    products = Product.objects.all().exclude(target_link = None)
+    one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
+    products = Product.objects.exclude(target_link=None,)
     exchange_rate = get_exchange_rate()
-    for product in products:
-        product_id = product.id
-        product_name= product.name
-        target_link = product.target_link
-        if target_link != "" and (product.last_scrape == None or product.last_scrape < (timezone.now() - datetime.timedelta(days=1))):
-            price = scrape_price(target_link)
-            if price:
-                if (price != 'CallUs') and ('error' not in price):
-                    product.scrap_price = price
-                    product.crawl_status = "Success"
+    logger.info('###########Scrap Start###########')
+    
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {executor.submit(scrape_price, product.target_link): product for product in products 
+                   if (product.last_scrape and (product.last_scrape < timezone.now() - datetime.timedelta(hours=1)) or not product.last_scrape) }
+        for future in as_completed(futures):
+            product = futures[future]
+            print(product.last_scrape < timezone.now() - datetime.timedelta(hours=1) )
+            try:
+                price = future.result()
+                if price and 'error' not in price:
+                    if price != 'CallUs':
+                        product.scrap_price = price
+                        product.crawl_status = "Success"
+                    else:
+                        product.crawl_status = "Call Us Price"
                     product.last_scrape = timezone.now()
                     product.save()
-                    print(f'Updated Database price for {product_name} to {price}')
-                
-                elif price == 'CallUs':
-                    product.scrap_price = price
-                    product.crawl_status = "Call Us Price"
-                    product.last_scrape = timezone.now()
-                    product.save()
-                    print(f'Database price for {product_name} Callus ')
+                    logger.info(f'Updated Database price for {product.name} to {price}')
                 else:
                     product.scrap_price = ""
                     product.crawl_status = price
                     product.last_scrape = timezone.now()
                     product.save()
-                    print(f'Failed to update price for {product_name}')
-        # Add your price scraping code here
-        elif product.crawl_status in ['No Price','Call Us Price' ,'Could not scrape price','error {e}'] and product.AED_price != None:
-            product.scrap_price = product.AED_price*exchange_rate
-            product.save()
-    response_data = {'message': 'Success'}
-    return JsonResponse(response_data)
+                    logger.info(f'Failed to update price for {product.name}')
+            except Exception as e:
+                logger.error(f"An error occurred: {e}")
+
+
+    logger.info('###########Scrap Ended###########')
+    return JsonResponse({'message': 'Success'})
 
 
 
 
 @login_required(login_url="/accounts/login/")
 def web_update_all_prices(request):
-    products = Product.objects.all().exclude(target_link = None)
-    for product in products:
-        product_id = product.id
-        product_name= product.name
-        status = product.crawl_status
-        target_link = product.target_link
-        if target_link != '' and status != 'Could not scrape price' :
-            update_website_price(product)
-        else :
-            print(f'No target_link for product id : {product_id}: {product_name}')
-        # Add your price scraping code here
-    return True
+    products = Product.objects.filter(
+        target_link__isnull=False,
+        crawl_status__in=['Success', 'Call Us Price']
+    ).exclude(target_link='None')
+    logger.info('###########WebUpdate Start###########')
+     
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {executor.submit(update_website_price, product): product for product in products 
+                   if (product.last_web_price_update and (product.last_web_price_update < timezone.now() - datetime.timedelta(hours=1))) or not product.last_web_price_update}
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                product = futures[future]
+                logger.error(f"An error occurred with product {product.id}: {e}")
 
+    logger.info('###########WebUpdate End###########')
+    return JsonResponse({'message': 'Success'})
 
+def update_website_price(product):
+    if not product.target_link:
+        logger.info(f'No target_link for product id: {product.id}: {product.name}')
+        return
 
+    product_id = product.id
+    new_price = product.scrap_price
+    status = product.crawl_status
+    link = product.target_link
+    product_name = product.name
+    base_url = 'https://doorbinshot.com/wp-json/wc/v3'
+    endpoint = '/products'
+    update_url = f'{base_url}{endpoint}/{product_id}'
+    headers = woocomerce_login()
+
+    new_price_data = {
+        'regular_price': '' if new_price == 'CallUs' else new_price
+    }
+
+    if product.last_web_price_update is None or product.last_web_price_update < (timezone.now() - datetime.timedelta(days=1)):
+        response = requests.put(update_url, headers=headers, data=json.dumps(new_price_data))
+        if response.status_code == 200:
+            product.last_web_price_update = timezone.now()
+            product.save(update_fields=['last_web_price_update'])
+            logger.info(f'Web Price updated Product ID {product_id} : {product_name} : {new_price}')
+        else:
+            logger.info(response.content.decode('utf-8'))
+            logger.info(f'Error updating price for Product ID {product_id} : {response.status_code}')
+    return
 @login_required(login_url="/accounts/login/")
 def update_product_targetlink(request):
     if request.method == "POST":
@@ -218,43 +246,6 @@ def translate_persian_numerals_to_latin(text):
     return text.translate(translation_table)
 
 
-def update_website_price(product):
-    product_id = product.id
-    new_price = product.scrap_price
-    status = product.crawl_status
-    link = product.target_link
-    product_name = product.name
-    base_url = 'https://doorbinshot.com/wp-json/wc/v3'
-    endpoint = '/products'
-    update_url = f'{base_url}{endpoint}/{product_id}'
-    headers = woocomerce_login()
-    if new_price != 'CallUs':
-        new_price_data = {
-                'regular_price': new_price
-            }
-    else : 
-        new_price_data = {
-                'regular_price': ''
-            }
-
-    
-    if  (link != '' or link != None) and (product.last_web_price_update == None or product.last_web_price_update < (timezone.now() - datetime.timedelta(days=1))):
-    
-        # Construct the update URL for the specific product
-        # Define the new price in the format expected by WooCommerce
-        # Send a PUT request to update the product price
-        response = requests.put(update_url, headers=headers, data = json.dumps(new_price_data))
-
-        if response.status_code == 200:
-            #print(response.content.decode('utf-8'))
-            product.last_web_price_update = timezone.now()
-            print(f'Web Price updated Product ID {product_id} : {product_name} : {new_price}')
-        else:
-            print(response.content.decode('utf-8'))
-            print(f'Error updating price for Product ID {product_id} : {response.status_code}')
-    return
-
-
 
 @login_required(login_url="/accounts/login/")
 def update_product_list(request):
@@ -273,7 +264,7 @@ def update_product_list(request):
             
             if response.status_code == 200:
                 products_data = response.json()
-                #print(response.content)
+                #logger.info(response.content)
                 if not products_data:
                     break  #No more products to retrieve
 
@@ -287,30 +278,30 @@ def update_product_list(request):
                     if existing_product is None: 
                         p =  Product.objects.get_or_create(id = int(product['id']),name = product['name'], web_price = product['regular_price'])
                         if p :
-                            print(f"Created product with ID {product['id']}")
+                            logger.info(f"Created product with ID {product['id']}")
                     else:
                         # Product already exists, you can choose to do something with it if needed
                         if existing_product.target_link == '':
                             existing_product.web_price =  product['regular_price']
-                        #print(f"Product with ID {product['id']} already exists.")
+                        #logger.info(f"Product with ID {product['id']} already exists.")
                         pass
 
                 page += 1  #Move to the next page of results
             else:
-                print(f'Error: {response.text}')
-                print(str(response.content).encode('utf-8'))
+                logger.info(f'Error: {response.text}')
+                logger.info(str(response.content).encode('utf-8'))
                 break  # Exit the loop on error
         except:
             pass
 
-    #print("Products data successfully stored in the database.")
+    #logger.info("Products data successfully stored in the database.")
     return JsonResponse({'message': 'Success'})
 
 
 def woocomerce_login():
 
-    api_key = 'ck_1a5bdfc26bafef0e54b8855484f48e8d4652d3fc'  # Replace with your actual API key
-    api_secret = 'cs_46f0378584d13e45fc1ce25a90a9b78fa70e2666'  # Replace with your actual API secret
+    api_key = 'ck_a862f3205a9991d1bed42d48104616f92fa702e7'  # Replace with your actual API key
+    api_secret = 'cs_fe83d949d4d90a1f2fba42b903ab87b256543f06'  # Replace with your actual API secret
     auth_string = f'{api_key}:{api_secret}'
     auth_header = 'Basic ' + base64.b64encode(auth_string.encode()).decode()
     headers = {
@@ -370,11 +361,11 @@ def check_price_change():
         
             if price and price != product.scrap_price :
                 total_change_status.append('changed')
-                print('changed')
+                logger.info('changed')
 
-            print(str(product.id) + 'not changed')
+            logger.info(str(product.id) + 'not changed')
         except Exception as e:
-            print(f'Error checking price for Product ID {product.id}: {str(e)}')
+            logger.info(f'Error checking price for Product ID {product.id}: {str(e)}')
             pass
     if len(total_change_status) > 3:
         return True
@@ -390,10 +381,10 @@ def get_exchange_rate():
             target_element = soup.select_one("#main > div.stocks-profile > div.fs-row.bootstrap-fix.widgets.full-w-set.profile-social-share-box > div.row.tgju-widgets-row > div.tgju-widgets-block.col-md-12.col-lg-4.tgju-widgets-block-bottom-unset.overview-first-block > div > div:nth-child(2) > div > div.tables-default.normal > table > tbody > tr:nth-child(1) > td.text-left")
             aed_price =  target_element.get_text()
             aed_price = aed_price.replace(',', '').strip()
-            #print(aed_price)
+            #logger.info(aed_price)
             return aed_price
     else :
-        print('error geting exchange rate')
+        logger.info('error geting exchange rate')
         return None
 
     ''' try:
@@ -409,13 +400,13 @@ def get_exchange_rate():
         
         api_url = 'https://v6.exchangerate-api.com/v6/'+access_key+'/history/AED/2023/11/24'
         response = requests.get(api_url,)
-        print(response.json())
+        logger.info(response.json())
         api_url = 'https://v6.exchangerate-api.com/v6/'+access_key+'/latest/IRR'
         response = requests.get(api_url,)
 
         if response.status_code == 200:
             data = response.json()
-            print(data)
+            logger.info(data)
             # اینجا می‌توانید از داده‌های دریافتی برای محاسبه نرخ مبادله استفاده کنید.
             # بر اساس داده‌های دریافتی، exchange_rate را تعیین کنید.
             exchange_rate = data['rates']['AED']
@@ -423,10 +414,10 @@ def get_exchange_rate():
             return exchange_rate
         else:
             data = response.json()
-            print(data)
+            logger.info(data)
             return None
     except Exception as e:
-        print(f"Error getting exchange rate: {e}")'''
+        logger.info(f"Error getting exchange rate: {e}")'''
     return None
 
 
@@ -1406,7 +1397,7 @@ def add_comment_to_product(product_id):
         "date_created": random_date()
         }
         response = requests.post(endpoint, headers = woocomerce_login(), json=data)
-        print(f'{product_id} : {comment}')
+        logger.info(f'{product_id} : {comment}')
     return response.json()
 
 

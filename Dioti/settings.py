@@ -172,6 +172,11 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': 'debug.log',
             'formatter': 'verbose',
+        },'file_info': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'info.log',
+            'formatter': 'verbose',
         },
         'file_error': {
             'level': 'ERROR',
@@ -182,12 +187,12 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file_debug', 'file_error'],
+            'handlers': ['file_debug', 'file_error'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'myapp': {
-            'handlers': ['console', 'file_debug', 'file_error'],
+            'handlers': ['file_info', 'file_debug', 'file_error'],
             'level': 'DEBUG',
             'propagate': True,
         },
