@@ -58,7 +58,7 @@ def dashboard(request):
         'error_num': error_num,
         'callus_num': callus_num,
     }
-    return render(request, 'index.html',context)
+    return render(request, 'dashboard.html',context)
 
 
 
@@ -189,7 +189,7 @@ def web_update_all_prices(request):
                 logger.error(f"An error occurred with product {product.id}: {e}")
 
     logger.info('###########WebUpdate End###########')
-    return JsonResponse({'message': 'Success'})
+    return JsonResponse({'success' :True})
 
 def update_website_price(product):
     if not product.target_link:
