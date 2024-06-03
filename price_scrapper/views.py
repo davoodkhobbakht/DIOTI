@@ -133,8 +133,10 @@ import datetime
 @login_required(login_url="/accounts/login/")
 def scrap_update_all_prices(request):
     #one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
-    products = Product.objects.exclude(target_link=None,)
+    products = Product.objects.exclude(target_link__in=[None,'None'])
     #exchange_rate = get_exchange_rate()
+
+    logger.info(products.count())
     logger.info('###########Scrap Start###########')
     
     with ThreadPoolExecutor(max_workers=2) as executor:
