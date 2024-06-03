@@ -132,17 +132,17 @@ import datetime
 
 @login_required(login_url="/accounts/login/")
 def scrap_update_all_prices(request):
-    one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
+    #one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
     products = Product.objects.exclude(target_link=None,)
-    exchange_rate = get_exchange_rate()
+    #exchange_rate = get_exchange_rate()
     logger.info('###########Scrap Start###########')
     
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {executor.submit(scrape_price, product.target_link): product for product in products 
                    if (product.last_scrape and (product.last_scrape < timezone.now() - datetime.timedelta(hours=1)) or not product.last_scrape) }
         for future in as_completed(futures):
             product = futures[future]
-            print(product.last_scrape < timezone.now() - datetime.timedelta(hours=1) )
+            #print(product.last_scrape < timezone.now() - datetime.timedelta(hours=1) )
             try:
                 price = future.result()
                 if price and 'error' not in price:
@@ -175,7 +175,7 @@ def web_update_all_prices(request):
     products = Product.objects.filter(
         target_link__isnull=False,
         crawl_status__in=['Success', 'Call Us Price']
-    ).exclude(target_link='None')
+    ).exclude(target_link__in =['None',None])
     logger.info('###########WebUpdate Start###########')
      
     with ThreadPoolExecutor(max_workers=5) as executor:

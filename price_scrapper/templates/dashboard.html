@@ -46,7 +46,7 @@
                     // Handle the success response here
                     if (data === true) {
                         // Refresh the page upon success
-                        location.reload();
+                        window.location.reload();
                     } else {
                         // Handle any other response if needed
                         alert("Update failed.");
@@ -79,7 +79,7 @@
                         // Refresh the page upon success
 
                         alert("Update Success.");
-                        location.href('{url "scrape_done"}');
+                        window.location.href('{url "scrape_done"}');
                     } else {
                         // Handle any other response if needed
                         alert("Update failed.");
@@ -111,7 +111,7 @@
                     // Handle the success response here
                     if (data.success === true) {
                         // Refresh the page upon success
-                        location.reload();
+                        window.location.reload();
                     } else {
                         // Handle any other response if needed
                         alert("Update failed.");
