@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-bdgy6_beurd08xh4oj4b7jf*pn$dr)8-9@b5xtdti0*5!as9rq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['dioti.ir' ,'www.dioti.ir' , '127.0.0.1']
+ALLOWED_HOSTS = ['mail.dioti.ir','dioti.ir' ,'www.dioti.ir' , '127.0.0.1']
 
 
 # Application definition
