@@ -31,7 +31,6 @@ def index(request):
     logger.critical('This is a critical message')
     for p in Product.objects.all():
             p.last_scrape = timezone.now()-datetime.timedelta(hours=6) 
-            p.scrap_price = 0
             p.save()
             print(p.id)
     return render(request, 'Mpage.html',)
