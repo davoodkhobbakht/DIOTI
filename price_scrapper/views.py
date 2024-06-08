@@ -1,4 +1,4 @@
-import datetime
+
 import random
 from django.utils import timezone
 from bs4 import BeautifulSoup
@@ -6,13 +6,15 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 import sqlite3
 import base64
-import requests
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from .models import Product
 import json
 import logging
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from django.utils import timezone
+import datetime
 # Create your views here.
 
 
@@ -27,10 +29,11 @@ def index(request):
     logger.warning('This is a warning message')
     logger.error('This is an error message')
     logger.critical('This is a critical message')
-    """for p in Product.objects.filter(target_link = 'None'):
-        p.target_link = None
-        p.save()
-    print(timezone.now() - datetime.timedelta(hours=1),timezone.now() )"""
+    for p in Product.objects.all():
+        if p.target_link== 'None':
+            #p.target_link = 
+            #p.save()
+            print(p.target_link)
     return render(request, 'Mpage.html',)
 
 
@@ -102,6 +105,7 @@ def scrape_done(request):
 
 def scrape_price(url):
     try:
+        #logger.info(f'getting url {url}')
         response = requests.get(url)
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -126,16 +130,13 @@ def scrape_price(url):
             return price
     except Exception as e:
         return f'error {e}'
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from django.utils import timezone
-import datetime
+
 
 @login_required(login_url="/accounts/login/")
 def scrap_update_all_prices(request):
     #one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
-    products = Product.objects.exclude(target_link__in=[None,'None'])
+    products = Product.objects.exclude(target_link= None)
     #exchange_rate = get_exchange_rate()
-
     logger.info(products.count())
     logger.info('###########Scrap Start###########')
     
@@ -353,7 +354,9 @@ def check_price_change():
                     product_box = soup.find('div', class_ = 'woocommerce-main-3-row-single')
                     soup = product_box
                     price_element = soup.find('span', class_='woocommerce-Price-amount')
+                    
                     if price_element:
+                        price_element.find('bdi',class_='true_price')
                         price = price_element.get_text(strip=True)
                         if price:
                             price = price.replace('تومان', '').replace(',', '').strip()
