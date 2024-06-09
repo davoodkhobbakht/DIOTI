@@ -1,5 +1,6 @@
 
 import random
+import time
 from django.utils import timezone
 from bs4 import BeautifulSoup
 from django.shortcuts import get_object_or_404, render
@@ -29,10 +30,10 @@ def index(request):
     logger.warning('This is a warning message')
     logger.error('This is an error message')
     logger.critical('This is a critical message')
-    for p in Product.objects.all():
+    '''for p in Product.objects.all():
             p.last_scrape = timezone.now()-datetime.timedelta(hours=6) 
             p.save()
-            print(p.id)
+            print(p.id)'''
     return render(request, 'Mpage.html',)
 
 
@@ -191,6 +192,7 @@ def web_update_all_prices(request):
                 logger.error(f"An error occurred with product {product.id}: {e}")
 
     logger.info('###########WebUpdate End###########')
+    logger.handlers[0].flush()  # 
     return JsonResponse({'success' :True})
 
 def update_website_price(product):
@@ -248,59 +250,70 @@ def translate_persian_numerals_to_latin(text):
     return text.translate(translation_table)
 
 
-
 @login_required(login_url="/accounts/login/")
 def update_product_list(request):
-    
     base_url = 'https://doorbinshot.com/wp-json/wc/v3'
     endpoint = '/products'
-    page = 1  # Start with the first page of results
-    per_page = 100  # Adjust per_page as needed to retrieve a larger number of products per page
+    page = 1
+    per_page = 100
     auth_header = woocomerce_login()
+
+    # To keep track of product IDs retrieved from WooCommerce
+    woocommerce_product_ids = set()
+    retry_attempts = 5
+
     while True:
         url = f'{base_url}{endpoint}?per_page={per_page}&page={page}'
-        
-        payload = {}
-        try:
-            response = requests.get(url, headers=auth_header)
-            
-            if response.status_code == 200:
-                products_data = response.json()
-                #logger.info(response.content)
-                if not products_data:
-                    break  #No more products to retrieve
+        for attempt in range(retry_attempts):
+            try:
+                response = requests.get(url, headers=auth_header)
+                if response.status_code == 200:
+                    products_data = response.json()
+                    if not products_data:
+                        break  # No more products to retrieve
 
-                for product in products_data:
-                    try:
-                        # Try to get the existing product with the given id
-                        existing_product = Product.objects.get(id=int(product['id']))
-                    except Product.DoesNotExist:
-                        # If it doesn't exist, create a new product
-                        existing_product = None
-                    if existing_product is None: 
-                        p =  Product.objects.get_or_create(id = int(product['id']),name = product['name'], web_price = product['regular_price'])
-                        if p :
-                            logger.info(f"Created product with ID {product['id']}")
-                    else:
-                        # Product already exists, you can choose to do something with it if needed
-                        if existing_product.target_link == '':
-                            existing_product.web_price =  product['regular_price']
-                        #logger.info(f"Product with ID {product['id']} already exists.")
-                        pass
+                    for product in products_data:
+                        product_id = int(product['id'])
+                        woocommerce_product_ids.add(product_id)
 
-                page += 1  #Move to the next page of results
-            else:
-                logger.info(f'Error: {response.text}')
-                logger.info(str(response.content).encode('utf-8'))
-                break  # Exit the loop on error
-        except:
-            pass
+                        try:
+                            # Try to get the existing product with the given id
+                            existing_product = Product.objects.get(id=product_id)
+                        except Product.DoesNotExist:
+                            # If it doesn't exist, create a new product
+                            existing_product = Product(id=product_id)
 
-    #logger.info("Products data successfully stored in the database.")
+                        existing_product.name = product['name']
+                        existing_product.web_price = product.get('regular_price', '')
+                        existing_product.save()
+                        logger.info(f'Synchronized product with ID {product_id}')
+
+                    page += 1  # Move to the next page of results
+                    break  # Exit the retry loop on success
+                else:
+                    logger.error(f'Error: {response.text}')
+                    break  # Exit the loop on error
+            except (requests.exceptions.ConnectionError, ConnectionResetError) as e:
+                logger.error(f'Exception occurred: {e}')
+                if attempt < retry_attempts - 1:
+                    logger.info(f'Retrying... ({attempt + 1}/{retry_attempts})')
+                    time.sleep(5)  # Wait for 5 seconds before retrying
+                else:
+                    logger.error('Max retries reached, exiting.')
+                    return JsonResponse({'message': 'Failed to sync products due to connection issues.'})
+
+    # Delete products in the Django database that were not retrieved from WooCommerce
+    Product.objects.exclude(id__in=woocommerce_product_ids).delete()
+
+    logger.info("Products data successfully synchronized with WooCommerce.")
     return JsonResponse({'message': 'Success'})
 
 
-def woocomerce_login():
+
+
+
+@login_required(login_url="/accounts/login/")
+def woocomerce_login(request):
 
     api_key = 'ck_a862f3205a9991d1bed42d48104616f92fa702e7'  # Replace with your actual API key
     api_secret = 'cs_fe83d949d4d90a1f2fba42b903ab87b256543f06'  # Replace with your actual API secret
@@ -316,6 +329,7 @@ def woocomerce_login():
 
 
 
+@login_required(login_url="/accounts/login/")
 def check_price_change():
     products = random.sample(list(Product.objects.filter(crawl_status='Success')), 20)
     total_change_status= []
@@ -377,6 +391,7 @@ def check_price_change():
         return False
 
 
+@login_required(login_url="/accounts/login/")
 def get_exchange_rate():
     url = "https://www.tgju.org/profile/price_aed"
     response = requests.get(url)
@@ -438,6 +453,8 @@ def random_rating():
 
 
 # Function to add a comment to a product
+
+@login_required(login_url="/accounts/login/")
 def add_comment_to_product(product_id):
     url = 'https://doorbinshot.com/wp-json/wc/v3'
     endpoint = f"{url}/products/reviews"
