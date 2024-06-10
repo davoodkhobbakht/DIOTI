@@ -182,7 +182,7 @@ def web_update_all_prices(request):
     logger.info('###########WebUpdate Start###########')
      
     with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = {executor.submit(update_website_price, product): product for product in products 
+        futures = {executor.submit(update_website_price, product,request): product for product in products 
                    if (product.last_web_price_update and (product.last_web_price_update < timezone.now() - datetime.timedelta(hours=1))) or not product.last_web_price_update}
         for future in as_completed(futures):
             try:
@@ -195,7 +195,9 @@ def web_update_all_prices(request):
     logger.handlers[0].flush()  # 
     return JsonResponse({'success' :True})
 
-def update_website_price(product):
+
+@login_required(login_url="/accounts/login/")
+def update_website_price(product,request):
     if not product.target_link:
         logger.info(f'No target_link for product id: {product.id}: {product.name}')
         return
@@ -208,7 +210,7 @@ def update_website_price(product):
     base_url = 'https://doorbinshot.com/wp-json/wc/v3'
     endpoint = '/products'
     update_url = f'{base_url}{endpoint}/{product_id}'
-    headers = woocomerce_login()
+    headers = woocomerce_login(request)
 
     new_price_data = {
         'regular_price': '' if new_price == 'CallUs' else new_price
@@ -256,7 +258,7 @@ def update_product_list(request):
     endpoint = '/products'
     page = 1
     per_page = 100
-    auth_header = woocomerce_login()
+    auth_header = woocomerce_login(request)
 
     # To keep track of product IDs retrieved from WooCommerce
     woocommerce_product_ids = set()
