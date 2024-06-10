@@ -1,713 +1,602 @@
 {% extends "base.html" %}
 
 {% block content %}
-<link rel="stylesheet" href="http://cdn.datatables.net/1.10.2/css/jquery.dataTables.min.css"></style>
-
 <style>
-  /* 16 */
-.tab-tab {
-  border: none;
-  color: #000;
-}
-.tab-tab:after {
-  position: absolute;
-  content: "";
-  width: 0;
-  height: 100%;
-  top: 0;
-  left: 0;
-  direction: rtl;
-  z-index: -1;
-  box-shadow:
-   -7px -7px 20px 0px #fff9,
-   -4px -4px 5px 0px #fff9,
-   7px 7px 20px 0px #0002,
-   4px 4px 5px 0px #0001;
-  transition: all 0.3s ease;
-}
-.tab-tab:hover {
-  color: #000;
-}
-.tab-tab:hover:after {
-  left: auto;
-  right: 0;
-  width: 100%;
-}
-.tab-tab:active {
-  top: 2px;
-}
-.tab-tab.active
- {
-  background-color: primary;
-  padding: -10px -10px;
-  border-radius: 20px;
+  body {
+    background-color: #F1F7F9;
+  }
 
- }
- .button__badge {
-  background-color: #3e96fa;
-  border-radius: 2px;
-  color: white;
- 
-  padding: 1px 3px;
-  font-size: 12px;
-  
-  position: relative; /* Position the badge within the relatively positioned button */
-  top: 0;
-  right: 0;
-}
-body{
-background-color: #eee; 
-}
+  thead {
+    text-align: center;
+    align-content: center;
+    font-size: 15px;
+  }
 
-table th , table td{
+  .my-btn {
+    margin: 20px;
+    align-items: center;
+    appearance: none;
+    background-image: radial-gradient(100% 100% at 100% 0, #5adaff 0, #5468ff 100%);
+    border: 0;
+    border-radius: 6px;
+    box-shadow: rgba(45, 35, 66, .4) 0 2px 4px, rgba(45, 35, 66, .3) 0 7px 13px -3px, rgba(58, 65, 111, .5) 0 -3px 0 inset;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    font-family: 'Vazirmatn';
+    height: 48px;
+    justify-content: center;
+    line-height: 1;
+    list-style: none;
+    overflow: hidden;
+    padding-left: 16px;
+    padding-right: 16px;
+    position: relative;
     text-align: left;
-}
+    text-decoration: none;
+    transition: box-shadow .15s, transform .15s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+    will-change: box-shadow, transform;
+    font-size: 18px;
+  }
 
-table tr:nth-child(even){
-background-color: #e4e3e3
-}
+  .my-btn:focus {
+    box-shadow: #3c4fe0 0 0 0 1.5px inset, rgba(45, 35, 66, .4) 0 2px 4px, rgba(45, 35, 66, .3) 0 7px 13px -3px, #3c4fe0 0 -3px 0 inset;
+  }
 
-th {
-background: #ffffff;
-color: #000000;
-}
+  .my-btn:hover {
+    box-shadow: rgba(45, 35, 66, .4) 0 4px 8px, rgba(45, 35, 66, .3) 0 7px 13px -3px, #3c4fe0 0 -3px 0 inset;
+    transform: translateY(-2px);
+  }
 
-.pagination {
-margin: 0;
-}
+  .my-btn:active {
+    box-shadow: #3c4fe0 0 3px 7px inset;
+    transform: translateY(2px);
+  }
 
-.pagination li:hover{
-cursor: pointer;
-}
+  .tab-tab {
+    align-content: center;
+    text-align: center;
+    margin: 10px;
+    background: radial-gradient(100% 100% at 100% 0, #5adaff 0, #5468ff 100%);
+    border-radius: 6px;
+    box-shadow: #3c4fe0 0 10px 20px -10px;
+    width: 130px;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    cursor: pointer;
+    font-family: 'Vazirmatn';
+    font-size: 16px;
+    line-height: 24px;
+    opacity: 1;
+    outline: 0 solid transparent;
+    padding: 8px 18px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    word-break: break-word;
+    border: 0;
+    transition: box-shadow .15s, transform .15s;
+  }
 
-.header_wrap {
-padding:30px 0;
-}
-.num_rows {
-width: 20%;
-float:left;
-}
-.tb_search{
-border-radius: 20px;
-width: 20%;
-float:right;
-}
-.pagination-container {
-width: 70%;
-float:left;
-}
+  .tab-tab a {
+    color: white;
+  }
 
-.rows_count {
-width: 20%;
-float:right;
-text-align:right;
-color: #999;
-}
+  .tab-tab:hover {
+    box-shadow: rgba(45, 35, 66, .4) 0 4px 8px, rgba(45, 35, 66, .3) 0 7px 13px -3px, #3c4fe0 0 -3px 0 inset;
+    transform: translateY(-2px);
+  }
 
-/* btn style */
-body {
-  background: #e0e5ec;
-}
-h1 {
-  position: relative;
-  text-align: center;
-  color: #353535;
-  font-size: 50px;
-  font-family: "Cormorant Garamond", serif;
-}
-
-p {
-  font-family: 'Lato', sans-serif;
-  font-weight: 300;
-  text-align: center;
-  font-size: 18px;
-  color: #676767;
-}
-.frame {
-  width: 90%;
-  margin: 40px auto;
-  text-align: center;
-}
-button {
-  margin: 20px;
-}
-.custom-btn {
-  width: 130px;
-  height: 50px;
-  color: #fff;
-  border-radius: 5px;
-  padding: 10px 25px;
-  font-family: 'Lato', sans-serif;
-  font-weight: 500;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  display: inline-block;
-   box-shadow:inset 2px 2px 2px 0px rgba(255,255,255,.5),
-   7px 7px 20px 0px rgba(0,0,0,.1),
-   4px 4px 5px 0px rgba(0,0,0,.1);
-  outline: none;
-}
-
-/* 16 */
-.btn-16 {
-  border: none;
-  color: #000;
-}
-.btn-16:after {
-  position: absolute;
-  content: "";
-  width: 0;
-  height: 100%;
-  top: 0;
-  left: 0;
-  direction: rtl;
-  z-index: -1;
-  box-shadow:
-   -7px -7px 20px 0px #fff9,
-   -4px -4px 5px 0px #fff9,
-   7px 7px 20px 0px #0002,
-   4px 4px 5px 0px #0001;
-  transition: all 0.3s ease;
-}
-.btn-16:hover {
-  color: #000;
-}
-.btn-16:hover:after {
-  left: auto;
-  right: 0;
-  width: 100%;
-}
-.btn-16:active {
-  top: 2px;
-}
-
-
-/* .slideThree */
-.slideThree {
-  width: 80px;
-  height: 26px;
-  background: #d3d3d3;
-  margin: 20px auto;
-  position: relative;
-  border-radius: 50px;
-  box-shadow: inset 0px 1px 1px rgba(0, 0, 0, 0.5), 0px 1px 0px rgba(255, 255, 255, 0.2);
-}
-.slideThree:after {
-  content: 'OFF';
-  color: #000;
-  position: absolute;
-  right: 10px;
-  z-index: 0;
-  font: 12px/26px Arial, sans-serif;
-  font-weight: bold;
-  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.15);
-}
-.slideThree:before {
-  content: 'ON';
-  color: #27ae60;
-  position: absolute;
-  left: 10px;
-  z-index: 0;
-  font: 12px/26px Arial, sans-serif;
-  font-weight: bold;
-}
-.slideThree label {
-  display: block;
-  width: 34px;
-  height: 20px;
-  cursor: pointer;
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  z-index: 1;
-  background: #fcfff4;
-  background: linear-gradient(to bottom, #fcfff4 0%, #dfe5d7 40%, #b3bead 100%);
-  border-radius: 50px;
-  transition: all 0.4s ease;
-  box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.3);
-}
-.slideThree input[type=checkbox] {
-  visibility: hidden;
-}
-.slideThree input[type=checkbox]:checked + label {
-  left: 43px;
-}
-
-/* end .slideThree */
+  .tab-tab:active {
+    box-shadow: #e03c3c 0 3px 7px inset;
+    transform: translateY(2px);
+  }
 </style>
+<link href="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/bootstrap-table@1.19.1/dist/extensions/reorder-rows/bootstrap-table-reorder-rows.css" rel="stylesheet">
 
+<div class="">
+  <ul class="nav nav-tabs">
+    <a class="tab-tab liclass" data-toggle="tab" href="#home">همه <span name='table1_title' id='table1_title' class="button__badge"></span></a>
+    <a class="tab-tab liclass" data-toggle="tab" href="#success">قیمت دار <span name='table2_title' id='table2_title' class="button__badge"></span></a>
+    <a class="tab-tab liclass" data-toggle="tab" href="#menu1">بدون قیمت <span name='table3_title' id='table3_title' class="button__badge"></span></a>
+    <a class="tab-tab liclass" data-toggle="tab" href="#menu2">تماس بگیرید <span name='table4_title' id='table4_title' class="button__badge"></span></a>
+    <a class="tab-tab liclass" data-toggle="tab" href="#menu3">خطا <span name='table5_title' id='table5_title' class="button__badge"></span></a>
+  </ul>
 
-
-
-        
-<div class="projects-section" style="width: 100%;">
-        
-    <ul class="nav nav-tabs">
-        
-        <li class="tab-tab"><a data-toggle="tab" href="#home" ><button class="custom-btn btn-16"> All </button> </a></li>
-        <li class="tab-tab"><a data-toggle="tab" href="#success"  ><button class="custom-btn btn-16"> success </button></a></li>
-        <li  class="tab-tab"><a data-toggle="tab" href="#menu1" ><button class="custom-btn btn-16"> No Price </button> </a></li>
-        <li  class="tab-tab"><a data-toggle="tab" href="#menu2" ><button class="custom-btn btn-16"> Call Us </button></a></li>
-        <li  class="tab-tab"><a data-toggle="tab" href="#menu3"><button class="custom-btn btn-16"> Error </button></a></li>
-        
-    </ul>
-
-    <div class="tab-content">
-        <div id="home" class="tab-pane fade active show in" style="text-align: right;">
-        <div class="table-responsive">
-            {% csrf_token %}
-            <table id="myTable" class="table custom-table">
-              <thead>
-                  <tr>  
-                      <th scope="col">ID</th>
-                      <th scope="col">Name</th>
-                      <th scope="col">Link</th>
-                      <th scope="col">Status</th>
-                      <th scope="col">Last Price Update</th>
-                      <th scope="col">Last scraped</th>
-                      <th scope="col">Web Price</th>
-                      <th scope="col">Scrap Price</th>
-                      <th scope="col">Action</th>
-                      <th scope="col">Action</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {% for p in products %}
-                  <tr scope="row">
-                    <td>{{p.id}}</td>
-                    <td><a href="#">{{p.name}}</a></td>
-                    <td style="width: 300px;">
-                    <input
-                        id="targetLink_{{p.id}}"
-                        type="text"
-                        class="target-link-input"
-                        value="{{ p.target_link }}"
-                        disabled
-                    />
-                    </td>
-                    <td>{{p.crawl_status}}</td>
-                    <td>{{p.last_web_price_update}}</td>
-                    <td>{{p.last_scrape}}</td>
-                    <td>{{p.web_price}}</td>
-                    <td>{{p.scrap_price}}</td>
-                    <td>
-                    <input
-                        disabled
-                        id="AED_price{{p.id}}"
-                        type="text"
-                        class="AED-input"
-                        value="{{ p.AED_price }}"
-                    />
-                    </td>
-                    <td>
-                    <button class="btn btn-primary" onclick="updateProduct('{{ p.id }}')">
-                        confirm
-                    </button>
-                    <!-- .squaredThree -->
-                    <div class="slideThree">
-                        <input
-                        type="checkbox"
-                        value="None"
-                        id="slideThree_{{p.id}}"
-                        name="check"
-                        onchange="toggleInputs({{ p.id }})"
-                        
-                        />
-                        <label for="slideThree_{{p.id}}"></label>
-                    </div>
-                    <!-- end .squaredThree -->
-                    </td>
-                </tr>
-                  {% endfor %}
-              </tbody>
-          </table>
-
-        </div>
-        </div>
-        <div id="success" class="tab-pane fade  show in" style="text-align: right;">
-            <div class="table-responsive">
-                {% csrf_token %}
-                <table id="myTable1" class="table custom-table">
-                
-                <thead>
-                    <tr>  
-                    
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Link</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Last Price Update</th>
-                    <th scope="col">Last scraped</th>
-                    <th scope="col">Web Price</th>
-                    <th scope="col">Scrap Price</th>
-                    <th scope="col">Action</th>
-                    <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                
-                <tbody>
-                    {% for p in products %}
-                        {% if p.crawl_status == 'Success'%}
-                        <tr scope="row">
-                            <td>{{p.id}}</td>
-                            <td><a href="#">{{p.name}}</a></td>
-                            <td style="width: 300px;">
-                            <input
-                                id="targetLink_{{p.id}}"
-                                type="text"
-                                class="target-link-input"
-                                value="{{ p.target_link }}"
-                                disabled
-                            />
-                            </td>
-                            <td>{{p.crawl_status}}</td>
-                            <td>{{p.last_web_price_update}}</td>
-                            <td>{{p.last_scrape}}</td>
-                            <td>{{p.web_price}}</td>
-                            <td>{{p.scrap_price}}</td>
-                            <td>
-                            <input
-                                disabled
-                                id="AED_price{{p.id}}"
-                                type="text"
-                                class="AED-input"
-                                value="{{ p.AED_price }}"
-                            />
-                            </td>
-                            <td>
-                            <button class="btn btn-primary" onclick="updateProduct('{{ p.id }}')">
-                                confirm
-                            </button>
-                            <!-- .squaredThree -->
-                            <div class="slideThree">
-                                <input
-                                type="checkbox"
-                                value="None"
-                                id="slideThree_{{p.id}}"
-                                name="check"
-                                onchange="toggleInputs({{ p.id }})"
-                                
-                                />
-                                <label for="slideThree_{{p.id}}"></label>
-                            </div>
-                            <!-- end .squaredThree -->
-                            </td>
-                        </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-                
-                </table>
-        
-            </div>
-            </div>
-
-        <div id="menu1" class="tab-pane fade  show in" style="text-align: right;">
-            <div class="table-responsive">
-                {% csrf_token %}
-                <table id="myTable2" class="table custom-table">
-                    
-                    <thead>
-                    <tr>  
-                        
-                        <th scope="col">ID</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Link</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Last Price Update</th>
-                        <th scope="col">Last scraped</th>
-                        <th scope="col">Web Price</th>
-                        <th scope="col">Scrap Price</th>
-                        <th scope="col">Action</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                    </thead>
-                    
-                    <tbody>
-                        {% for p in products %}
-                        {% if p.crawl_status == 'No Price'%}
-                        <tr scope="row">
-                        <td>{{p.id}}</td>
-                        <td><a href="#">{{p.name}}</a></td>
-                        <td style="width: 300px;">
-                            <input
-                            id="targetLink_{{p.id}}"
-                            type="text"
-                            class="target-link-input"
-                            value="{{ p.target_link }}"
-                            disabled
-                            />
-                        </td>
-                        <td>{{p.crawl_status}}</td>
-                        <td>{{p.last_web_price_update}}</td>
-                        <td>{{p.last_scrape}}</td>
-                        <td>{{p.web_price}}</td>
-                        <td>{{p.scrap_price}}</td>
-                        <td>
-                            <input
-                            disabled
-                            id="AED_price{{p.id}}"
-                            type="text"
-                            class="AED-input"
-                            value="{{ p.AED_price }}"
-                            />
-                        </td>
-                        <td>
-                            <button class="btn btn-primary" onclick="updateProduct('{{ p.id }}')">
-                            confirm
-                            </button>
-                            <!-- .squaredThree -->
-                            <div class="slideThree">
-                            <input
-                                type="checkbox"
-                                value="None"
-                                id="slideThree_{{p.id}}"
-                                name="check"
-                                onchange="toggleInputs({{ p.id }})"
-                                
-                            />
-                            <label for="slideThree_{{p.id}}"></label>
-                            </div>
-                            <!-- end .squaredThree -->
-                        </td>
-                        </tr>
-                    {% endif %}
-                    {% endfor %}
-                    </tbody>
-                
-                </table>
-        
-                </div>
-            </div>
-        <div id="menu2" class="tab-pane fade  show in" style="text-align: right;">
-            <div class="table-responsive">
-                {% csrf_token %}
-                <table id="myTable3" class="table custom-table">
-                    
-                    <thead>
-                    <tr>  
-                        
-                        <th scope="col">ID</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Link</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Last Price Update</th>
-                        <th scope="col">Last scraped</th>
-                        <th scope="col">Web Price</th>
-                        <th scope="col">Scrap Price</th>
-                        <th scope="col">Action</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                    </thead>
-                  
-                    <tbody>
-                        {% for p in products %}
-                        {% if p.crawl_status == 'Call Us Price'%}
-                        <tr scope="row">
-                        <td>{{p.id}}</td>
-                        <td><a href="#">{{p.name}}</a></td>
-                        <td style="width: 300px;">
-                            <input
-                            id="targetLink_{{p.id}}"
-                            type="text"
-                            class="target-link-input"
-                            value="{{ p.target_link }}"
-                            disabled
-                            />
-                        </td>
-                        <td>{{p.crawl_status}}</td>
-                        <td>{{p.last_web_price_update}}</td>
-                        <td>{{p.last_scrape}}</td>
-                        <td>{{p.web_price}}</td>
-                        <td>{{p.scrap_price}}</td>
-                        <td>
-                            <input
-                            disabled
-                            id="AED_price{{p.id}}"
-                            type="text"
-                            class="AED-input"
-                            value="{{ p.AED_price }}"
-                            />
-                        </td>
-                        <td>
-                            <button class="btn btn-primary" onclick="updateProduct('{{ p.id }}')">
-                            confirm
-                            </button>
-                            <!-- .squaredThree -->
-                            <div class="slideThree">
-                            <input
-                                type="checkbox"
-                                value="None"
-                                id="slideThree_{{p.id}}"
-                                name="check"
-                                onchange="toggleInputs({{ p.id }})"
-                                
-                            />
-                            <label for="slideThree_{{p.id}}"></label>
-                            </div>
-                            <!-- end .squaredThree -->
-                        </td>
-                        </tr>
-                    {% endif %}
-                    {% endfor %}
-                    </tbody>
-                
-                </table>
-        </div>
-                </div>
-            
-        <div id="menu3" class="tab-pane fade  show in" style="text-align: right;">
-            <div class="table-responsive">
-                {% csrf_token %}
-             <table id="myTable4" class="table custom-table">
-    <thead>
-        <tr>  
-            <th scope="col">ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Link</th>
-            <th scope="col">Status</th>
-            <th scope="col">Last Price Update</th>
-            <th scope="col">Last scraped</th>
-            <th scope="col">Web Price</th>
-            <th scope="col">Scrap Price</th>
-            <th scope="col">Action</th>
-            <th scope="col">Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for p in products %}
-        {% if p.crawl_status == 'error'%}
-        <tr scope="row">
-            <td>{{p.id}}</td>
-            <td><a href="#">{{p.name}}</a></td>
-            <td style="width: 300px;">
-                <input
-                    id="targetLink_{{p.id}}"
-                    type="text"
-                    class="target-link-input"
-                    value="{{ p.target_link }}"
-                    disabled
-                />
-            </td>
-            <td>{{p.crawl_status}}</td>
-            <td>{{p.last_price_update}}</td>
-            <td>{{p.last_scrape}}</td>
-            <td>{{p.web_price}}</td>
-            <td>{{p.scrap_price}}</td>
-            <td>
-                <input
-                    disabled
-                    id="AED_price_{{p.id}}"
-                    type="text"
-                    class="AED-input"
-                    value="{{ p.AED_price }}"
-                />
-            </td>
-            <td>
-                <button class="btn btn-primary" onclick="updateProduct('{{ p.id }}')">
-                    confirm
-                </button>
-                <!-- .squaredThree -->
-                <div class="slideThree">
-                <input
-                    type="checkbox"
-                    value="None"
-                    id="slideThree_{{p.id}}"
-                    name="check"
-                    onchange="toggleInputs({{ p.id }})"
-                    
-                />
-                <label for="slideThree_{{p.id}}"></label>
-                </div>
-            </td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-    </tbody>
-</table>
-                </div>
-            </div>
+  <div class="tab-content">
+    <div id="home" class="tab-pane fade active show in" style="text-align: right;">
+      <div class="table-responsive">
+        {% csrf_token %}
+        <table id="table1" class="table custom-table">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Link</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last Price Update</th>
+              <th scope="col">Last scraped</th>
+              <th scope="col">Web Price</th>
+              <th scope="col">Scrap Price</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            <tr scope="row">
+              <td>{{p.id}}</td>
+              <td><a href="#">{{p.name}}</a></td>
+              <td style="width: 300px;">
+                <input id="targetLink_{{p.id}}" type="text" class="target-link-input" value="{{ p.target_link }}" />
+              </td>
+              <td>{{p.crawl_status}}</td>
+              <td>{{p.last_web_price_update}}</td>
+              <td>{{p.last_scrape}}</td>
+              <td>{{p.web_price}}</td>
+              <td>{{p.scrap_price}}</td>
+              <td><input disabled id="targetLink_{{p.id}}" type="text" class="target-link-input" value="{{ p.AED_price }}" /></td>
+              <td>
+                <button class="btn btn-primary" onclick="updateProduct({{ p.id }})">confirm</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+    <div id="success" class="tab-pane fade show in" style="text-align: right;">
+      <div class="table-responsive">
+        {% csrf_token %}
+        <table id="table2" class="table custom-table">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Link</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last Price Update</th>
+              <th scope="col">Last scraped</th>
+              <th scope="col">Web Price</th>
+              <th scope="col">Scrap Price</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            {% if p.crawl_status == 'Success' %}
+            <tr scope="row">
+              <td>{{p.id}}</td>
+              <td><a href="#">{{p.name}}</a></td>
+              <td style="width: 300px;">
+                <input id="targetLink_{{p.id}}" type="text" class="target-link-input" value="{{ p.target_link }}" />
+              </td>
+              <td>{{p.crawl_status}}</td>
+              <td>{{p.last_web_price_update}}</td>
+              <td>{{p.last_scrape}}</td>
+              <td>{{p.web_price}}</td>
+              <td>{{p.scrap_price}}</td>
+              <td>
+                <button class="btn btn-primary" onclick="updateProduct({{ p.id }})">confirm</button>
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-  
+    <div id="menu1" class="tab-pane fade show in" style="text-align: right;">
+      <div class="table-responsive">
+        {% csrf_token %}
+        <table id="table3" class="table custom-table">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Link</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last Price Update</th>
+              <th scope="col">Last scraped</th>
+              <th scope="col">Web Price</th>
+              <th scope="col">Scrap Price</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            {% if p.crawl_status == 'No Price' %}
+            <tr scope="row">
+              <td>{{p.id}}</td>
+              <td><a href="#">{{p.name}}</a></td>
+              <td style="width: 300px;">
+                <input id="targetLink_{{p.id}}" type="text" class="target-link-input" value="{{ p.target_link }}" />
+              </td>
+              <td>{{p.crawl_status}}</td>
+              <td>{{p.last_web_price_update}}</td>
+              <td>{{p.last_scrape}}</td>
+              <td>{{p.web_price}}</td>
+              <td>{{p.scrap_price}}</td>
+              <td>
+                <button class="btn btn-primary" onclick="updateProduct({{ p.id }})">confirm</button>
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="menu2" class="tab-pane fade show in" style="text-align: right;">
+      <div class="table-responsive">
+        {% csrf_token %}
+        <table id="table4" class="table custom-table">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Link</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last Price Update</th>
+              <th scope="col">Last scraped</th>
+              <th scope="col">Web Price</th>
+              <th scope="col">Scrap Price</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            {% if p.crawl_status == 'Call Us Price' %}
+            <tr scope="row">
+              <td>{{p.id}}</td>
+              <td><a href="#">{{p.name}}</a></td>
+              <td style="width: 300px;">
+                <input id="targetLink_{{p.id}}" type="text" class="target-link-input" value="{{ p.target_link }}" />
+              </td>
+              <td>{{p.crawl_status}}</td>
+              <td>{{p.last_web_price_update}}</td>
+              <td>{{p.last_scrape}}</td>
+              <td>{{p.web_price}}</td>
+              <td>{{p.scrap_price}}</td>
+              <td>
+                <button class="btn btn-primary" onclick="updateProduct({{ p.id }})">confirm</button>
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="menu3" class="tab-pane fade show in" style="text-align: right;">
+      <div class="table-responsive">
+        {% csrf_token %}
+        <table id="table5" class="table custom-table">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Link</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last Price Update</th>
+              <th scope="col">Last scraped</th>
+              <th scope="col">Web Price</th>
+              <th scope="col">Scrap Price</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in products %}
+            {% if 'error' in p.crawl_status %}
+            <tr scope="row">
+              <td>{{p.id}}</td>
+              <td><a href="#">{{p.name}}</a></td>
+              <td style="width: 300px;">
+                <input id="targetLink_{{p.id}}" type="text" class="target-link-input" value="{{ p.target_link }}" />
+              </td>
+              <td>{{p.crawl_status}}</td>
+              <td>{{p.last_web_price_update}}</td>
+              <td>{{p.last_scrape}}</td>
+              <td>{{p.web_price}}</td>
+              <td>{{p.scrap_price}}</td>
+              <td>
+                <button class="btn btn-primary" onclick="updateProduct({{ p.id }})">confirm</button>
+              </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <!-- 		End of Container -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
-$(document).ready(function(){
-        $('#myTable').dataTable();
-        $('#myTable1').dataTable();
-        $('#myTable2').dataTable();
-        $('#myTable3').dataTable();
-        $('#myTable4').dataTable();
-         });  
+<script>
+  $(function() {
+   $('#table1').DataTable();
+    $('#table2').DataTable();
+    $('#table3').DataTable();
+    $('#table4').DataTable();
+    $('#table5').DataTable();
+  });
+  $(document).ready(function () {
+    // Initialize DataTables
+   
+   
 
 
-function toggleInputs(productId) {
-        const targetLinkInput = document.getElementById(`targetLink_${productId}`);
-        const AEDPriceInput = document.getElementById(`AED_price${productId}`);
-
-        if (document.getElementById(`slideThree_${productId}`).checked) {
-        targetLinkInput.disabled = false;
-        AEDPriceInput.disabled = false;
-        } else {
-        targetLinkInput.disabled = true;
-        AEDPriceInput.disabled = true;
-        }
+    // Function to update the tab titles with row counts
+    function updateTabCounts() {
+      
+      var table1 =  document.getElementById("table1");
+      var  table1_title  = document.getElementById("table1_title");
+      table1_title.textContent = (table1.rows[ table1.rows.length - 1 ].innerHTML == '<td colspan="31">No matching records found</td>') ? 0 : table1.rows.length - 1;
+      
+      var table2 =  document.getElementById("table2");
+      var  table2_title  = document.getElementById("table2_title");
+      table2_title.textContent = (table2.rows[ table2.rows.length - 1 ].innerHTML == '<td colspan="31">No matching records found</td>') ? 0 : table2.rows.length - 1;
+      var table3 =  document.getElementById("table3");
+      var  table3_title  = document.getElementById("table3_title");
+      table3_title.textContent = (table3.rows[ table3.rows.length - 1 ].innerHTML == '<td colspan="31">No matching records found</td>') ? 0 : table3.rows.length - 1;
+      var table4 =  document.getElementById("table4");
+      var  table4_title  = document.getElementById("table4_title");
+      table4_title.textContent = (table4.rows[ table4.rows.length - 1 ].innerHTML == '<td colspan="31">No matching records found</td>') ? 0 : table4.rows.length - 1;
+      var table5 =  document.getElementById("table5");
+      var  table5_title  = document.getElementById("table5_title");
+      table5_title.textContent = (table5.rows[ table5.rows.length - 1 ].innerHTML == '<td colspan="31">No matching records found</td>') ? 0 : table5.rows.length - 1;
+      
     }
 
-function updateProduct(productId) {
-        // Get the updated target link from the input field
-        const confirmed = confirm("Are you sure you want to update this product?");
+    // Call the function on page load
+    updateTabCounts();
+    
 
-        // Check the user's choice
-        if (confirmed) {
-          // User clicked "OK," proceed with the update
-          const updatedTargetLink = $(`#targetLink_${productId}`).val();
-          const data = {
-          csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-          product_id: productId,
-          target_link: updatedTargetLink,
-        };
-
-          $.ajax({
-                url: "{% url 'ajax-update-target-link' %}",  // URL of your Django view
-                type: "POST",
-                data: data,
-                success: function (response) {
-                  // Handle the success response here
-                  if (response.success) {
-                    alert("Update successful!");
-                    // You can update the UI here if needed
-                  } else {
-                    alert("Update failed.");
-                    // Handle any other response if needed
-                  }
-                },
-                error: function () {
-                  // Handle errors here
-                  alert("Error occurred during the update.");
-                },
-        });
-        } else {
-          alert('not confirmed')
-          // User clicked "Cancel," do nothing or provide feedback
-          // You can optionally add a message here or take other actions.
+    // Handle form submission via AJAX
+    $('#updateProductForm').submit(function (e) {
+      e.preventDefault();
+      var formData = $(this).serialize();
+      $.ajax({
+        type: 'POST',
+        url: '{% url "update_product" %}',
+        data: formData,
+        success: function (response) {
+          if (response.success) {
+            $('#productModal').modal('hide');
+            alert('Product updated successfully!');
+          } else {
+            alert('Failed to update product.');
+          }
+        },
+        error: function () {
+          alert('Error occurred while updating product.');
         }
+      });
+    });
 
-
-       
-        // Perform the update using AJAX (you'll need to implement this)
-        // You can use productId and updatedTargetLink to send the data to your server
-        // ...
+    // ModalComponent class definition
+    class ModalComponent extends HTMLElement {
+      constructor() {
+        super();
+        this.render();
       }
 
+      get component() {
+        return this;
+      }
 
-     
+      static get observedAttributes() {
+        return ["open"];
+      }
 
+      modal() {
+        return this.shadowRoot?.querySelector(".modal");
+      }
+
+      open() {
+        this.setAttribute("open", "");
+        this.style.display = "flex";
+        this.setAttribute("aria-hidden", `${!this.isOpen}`);
+        document.body.classList.add("modal-open");
+        setTimeout(() => {
+          this.modal()?.classList.add("show");
+        }, 100);
+      }
+
+      close() {
+        this.removeAttribute("open");
+        this.modal()?.classList.remove("show");
+        this.setAttribute("aria-hidden", `${!this.isOpen}`);
+        document.body.classList.remove("modal-open");
+        setTimeout(() => {
+          this.style.display = "none";
+        }, 200);
+      }
+
+      get isOpen() {
+        return this.hasAttribute("open");
+      }
+
+      toggle() {
+        if (this.isOpen) {
+          this.close();
+        } else {
+          this.open();
+        }
+      }
+
+      connectedCallback() {
+        const toggleButtons = document.querySelectorAll('[data-toggle="modal"]');
+        toggleButtons.forEach(button => {
+          button.addEventListener("click", () => {
+            this.open();
+          });
+        });
+
+        const dismissButtons = document.querySelectorAll('[data-dismiss="modal"]');
+        dismissButtons.forEach(button => {
+          button.addEventListener("click", () => {
+            this.close();
+          });
+        });
+
+        this.addEventListener("click", event => {
+          if (event.target === this) {
+            this.close();
+          }
+        });
+      }
+
+      get placement() {
+        return this.getAttribute("data-placement") ?? "top-center";
+      }
+
+      static get styles() {
+        return `
+          <style>
+            .modal-open { overflow: hidden; }
+            .modal { position: fixed; top: 0; left: 0; z-index: 9999; width: 100vw; height: 100dvh; background-color: rgba(0, 0, 0, .5); display: flex; flex-direction: column; padding: 1.5rem; }
+            .modal-backdrop { position: absolute; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; }
+            .modal-content { display: flex; flex-direction: column; position: relative; background-color: white; width: 100%; margin: 0; border-radius: .5rem; transform: scale(1.1); transition: visibility .25s ease-out, opacity .25s ease-out, transform .25s ease-out; padding: 1.5rem 0; }
+            @media (min-width: 576px) { .modal-content { max-width: 32rem; margin: 4rem 0; } }
+            .modal.fade .modal-content { opacity: 0; visibility: hidden; transform: scale(1.1); }
+            .modal.show .modal-content { opacity: 1; visibility: visible; transform: scale(1); }
+            .modal.modal-top-center { align-items: center; justify-content: flex-start; }
+            .modal.modal-top-start { align-items: flex-start; justify-content: flex-start; }
+            .modal.modal-top-end { align-items: flex-end; justify-content: flex-start; }
+            .modal.modal-center { align-items: center; justify-content: center; }
+            .modal.modal-center-start { align-items: flex-start; justify-content: center; }
+            .modal.modal-center-end { align-items: flex-end; justify-content: center; }
+            .modal.modal-bottom-center { align-items: center; justify-content: flex-end; }
+            .modal.modal-bottom-start { align-items: flex-start; justify-content: flex-end; }
+            .modal.modal-bottom-end { align-items: flex-end; justify-content: flex-end; }
+          </style>
+        `;
+      }
+
+      render() {
+        const shadowRoot = this.attachShadow({ mode: "open" });
+        this.style.display = "none";
+        this.setAttribute("role", "dialog");
+        shadowRoot.innerHTML = `${ModalComponent.styles}
+          <div class='modal fade modal-${this.placement}'>
+            <div class='modal-backdrop'></div>
+            <article class='modal-content' aria-labelledby='modal-title' aria-describedby='modal-body'>
+              <slot></slot>
+            </article>
+          </div>`;
+      }
+    }
+
+    customElements.define("modal-component", ModalComponent);
+
+    // AJAX handlers for buttons
+    $("#updateProductListBtn").click(function () {
+      $('#updateProductListBtnloading').show();
+      $("#updateProductListBtn").hide();
+      $.ajax({
+        url: "{% url 'update-product-list' %}",
+        type: "GET",
+        success: function (data) {
+          if (data === true) {
+            location.reload();
+          } else {
+            alert("Update failed.");
+          }
+        },
+        complete: function (data) {
+          $('#updateProductListBtnloading').hide();
+          $("#updateProductListBtn").show();
+        },
+        error: function () {
+          alert("Error occurred during the update.");
+        }
+      });
+    });
+
+    $("#scrapAll").click(function () {
+      $('#scrapAllloading').show();
+      $("#scrapAll").hide();
+      $.ajax({
+        url: "{% url 'scrape_prices' %}",
+        type: "GET",
+        success: function (data) {
+          if (data['message'] === 'Success') {
+            alert("Update Success.");
+            location.href('{url "scrape_done"}');
+          } else {
+            alert("Update failed.");
+          }
+        },
+        error: function () {
+          alert("Error occurred during the update.");
+        },
+        complete: function (data) {
+          $('#scrapAllloading').hide();
+          $("#scrapAll").show();
+        }
+      });
+    });
+
+    $("#webPriceUpdate").click(function () {
+      $('#webPriceUpdateloading').show();
+      $("#webPriceUpdate").hide();
+      $.ajax({
+        url: "{% url 'web-prices' %}",
+        type: "GET",
+        success: function (data) {
+          if (data === true) {
+            location.reload();
+          } else {
+            alert("Update failed.");
+          }
+        },
+        error: function () {
+          alert("Error occurred during the update.");
+        },
+        complete: function (data) {
+          $('#webPriceUpdateloading').hide();
+          $("#webPriceUpdate").show();
+        }
+      });
+    });
+  });
+
+  function updateProduct(productId) {
+    const confirmed = confirm("Are you sure you want to update this product?");
+    if (confirmed) {
+      const updatedTargetLink = $(`#targetLink_${productId}`).val();
+      const data = {
+        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+        product_id: productId,
+        target_link: updatedTargetLink,
+      };
+      $.ajax({
+        url: "{% url 'ajax-update-target-link' %}",
+        type: "POST",
+        data: data,
+        success: function (response) {
+          if (response.success) {
+            alert("Update successful!");
+          } else {
+            alert("Update failed.");
+          }
+        },
+        error: function () {
+          alert("Error occurred during the update.");
+        },
+      });
+    } else {
+      alert('not confirmed')
+    }
+  }
 </script>
-
 {% endblock %}
