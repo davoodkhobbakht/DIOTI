@@ -271,55 +271,47 @@ def update_product_list(request):
 
     # To keep track of product IDs retrieved from WooCommerce
     woocommerce_product_ids = set()
-    retry_attempts = 5
 
+    logger.info(f'###########Synchronize Start###########')
     while True:
         url = f'{base_url}{endpoint}?per_page={per_page}&page={page}'
-        for attempt in range(retry_attempts):
-            try:
-                response = requests.get(url, headers=auth_header)
-                if response.status_code == 200:
-                    products_data = response.json()
-                    if not products_data:
-                        break  # No more products to retrieve
+        try:
+            response = requests.get(url, headers=auth_header)
+            if response.status_code == 200:
+                products_data = response.json()
+                if not products_data:
+                    break  # No more products to retrieve
 
-                    for product in products_data:
-                        product_id = int(product['id'])
-                        woocommerce_product_ids.add(product_id)
+                for product in products_data:
+                    product_id = int(product['id'])
+                    woocommerce_product_ids.add(product_id)
 
-                        try:
-                            # Try to get the existing product with the given id
-                            existing_product = Product.objects.get(id=product_id)
-                        except Product.DoesNotExist:
-                            # If it doesn't exist, create a new product
-                            existing_product = Product(id=product_id)
+                    try:
+                        # Try to get the existing product with the given id
+                        existing_product = Product.objects.get(id=product_id)
+                    except Product.DoesNotExist:
+                        # If it doesn't exist, create a new product
+                        existing_product = Product(id=product_id)
 
-                        existing_product.name = product['name']
-                        existing_product.web_price = product.get('regular_price', '')
-                        existing_product.save()
-                        logger.info(f'Synchronized product with ID {product_id}')
+                    existing_product.name = product['name']
+                    existing_product.web_price = product.get('regular_price', '')
+                    existing_product.save()
+                    logger.info(f'Synchronized product with ID {product_id}')
 
-                    page += 1  # Move to the next page of results
-                    break  # Exit the retry loop on success
-                else:
-                    logger.error(f'Error: {response.text}')
-                    break  # Exit the loop on error
-            except (requests.exceptions.ConnectionError, ConnectionResetError) as e:
-                logger.error(f'Exception occurred: {e}')
-                if attempt < retry_attempts - 1:
-                    logger.info(f'Retrying... ({attempt + 1}/{retry_attempts})')
-                    time.sleep(5)  # Wait for 5 seconds before retrying
-                else:
-                    logger.error('Max retries reached, exiting.')
-                    return JsonResponse({'message': 'Failed to sync products due to connection issues.'})
+                page += 1  # Move to the next page of results
+            else:
+                logger.error(f'Error: {response.text}')
+                break  # Exit the loop on error
+        except Exception as e:
+            logger.error(f'Exception occurred: {e}')
+            break
 
     # Delete products in the Django database that were not retrieved from WooCommerce
     Product.objects.exclude(id__in=woocommerce_product_ids).delete()
 
+    logger.info(f'###########Synchronize End###########')
     logger.info("Products data successfully synchronized with WooCommerce.")
     return JsonResponse({'message': 'Success'})
-
-
 
 
 
