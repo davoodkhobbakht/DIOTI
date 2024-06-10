@@ -9,6 +9,7 @@ import sqlite3
 import base64
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
+from price_scrapper.tasks import scrape_update_product_prices ,web_update_all_prices_task
 from .models import Product
 import json
 import logging
@@ -171,7 +172,15 @@ def scrap_update_all_prices(request):
     return JsonResponse({'message': 'Success'})
 
 
+@login_required(login_url="/accounts/login/")
+def start_scrap_update_all_prices(request):
+    scrape_update_product_prices.delay()
+    return JsonResponse({'message': 'Success'})
 
+@login_required(login_url="/accounts/login/")
+def start_web_update_all_prices(request):
+    web_update_all_prices_task.delay()
+    return JsonResponse({'message': 'Success'})
 
 @login_required(login_url="/accounts/login/")
 def web_update_all_prices(request):
@@ -194,7 +203,6 @@ def web_update_all_prices(request):
     logger.info('###########WebUpdate End###########')
     logger.handlers[0].flush()  # 
     return JsonResponse({'success' :True})
-
 
 @login_required(login_url="/accounts/login/")
 def update_website_price(product,request):
@@ -226,6 +234,7 @@ def update_website_price(product,request):
             logger.info(response.content.decode('utf-8'))
             logger.info(f'Error updating price for Product ID {product_id} : {response.status_code}')
     return
+
 @login_required(login_url="/accounts/login/")
 def update_product_targetlink(request):
     if request.method == "POST":
