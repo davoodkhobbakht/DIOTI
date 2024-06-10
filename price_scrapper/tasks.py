@@ -54,7 +54,7 @@ def scrape_price(url):
 
 @shared_task
 def scrape_update_product_prices():
-    products = Product.objects.exclude(target_link = None)
+    products = Product.objects.exclude(target_link__isnull=False)
     logger.info(products.count())
     logger.info('###########Scrap Start###########')
     
