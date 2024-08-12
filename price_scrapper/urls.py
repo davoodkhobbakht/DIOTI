@@ -3,7 +3,6 @@ from . import views
 
 urlpatterns = [
 
-   path('logs/', views.logs, name='logs'),
    path('products/', views.products, name='products'),
    path('dashboard/', views.dashboard, name='dashboard'),
     path('', views.index, name='product_list'),
@@ -14,9 +13,7 @@ urlpatterns = [
     path('scrape_prices/', views.start_scrap_update_all_prices, name='scrape_prices'),
     path('scrape_done/', views.scrape_done, name='scrape_done'),
     path('get_exchange_rate/', views.get_exchange_rate, name='get_exchange_rate'),
-
-
+    path('logs/', views.view_logs, name='view_logs'),
     path('ajax-update-target-link/', views.update_product_targetlink, name='ajax-update-target-link'),
-
     path('update-product-list/', views.update_product_list, name='update-product-list'),
 ]

@@ -9,6 +9,7 @@ import sqlite3
 import base64
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
+from Dioti.settings import BASE_DIR
 from price_scrapper.tasks import scrape_update_product_prices ,web_update_all_prices_task
 from .models import Product
 import json
@@ -45,10 +46,6 @@ def products(request):
     return render(request, 'products.html', {'products': products})
 
 
-@login_required(login_url="/accounts/login/")
-def logs(request):
-    products = Product.objects.all()
-    return render(request, 'logs.html', {'products': products})
 
 
 @login_required(login_url="/accounts/login/")
@@ -330,6 +327,25 @@ def woocomerce_login(request):
     return headers
 
 
+
+
+@login_required(login_url="/accounts/login/")
+def view_logs(request):
+    info_log_file_path = f'{BASE_DIR}/info.log'  # Change this to the actual path of your log file
+    try:
+        with open(info_log_file_path, 'r') as log_file:
+            info_logs = log_file.readlines()[-100:]  # Read the last 100 lines of the log file
+    except FileNotFoundError:
+        info_logs = ["Log file not found."]
+
+    error_log_file_path = f'{BASE_DIR}/errors.log'  # Change this to the actual path of your log file
+    try:
+        with open(error_log_file_path, 'r') as log_file:
+            error_logs = log_file.readlines()[-100:]  # Read the last 100 lines of the log file
+    except FileNotFoundError:
+        error_logs = ["Log file not found."]
+
+    return render(request, 'view_logs.html', {'info_logs': info_logs ,'error_logs':error_logs})
 
 
 @login_required(login_url="/accounts/login/")

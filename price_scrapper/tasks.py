@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from django.utils import timezone
 import datetime
 import logging
-
+from celery import shared_task, current_app
 
 logger = logging.getLogger('myapp')
 logger.setLevel(logging.INFO)
@@ -52,8 +52,28 @@ def scrape_price(url):
         return f'error {e}'
 
 
-@shared_task
-def scrape_update_product_prices():
+def kill_similar_tasks(current_task_id, task_name):
+    i = current_app.control.inspect()
+    active_tasks = i.active()
+    print('current_task_id')
+    
+    if active_tasks:
+        for worker, tasks in active_tasks.items():
+            for task in tasks:
+
+                print(task['id'])
+                if task['name'] == task_name and task['id'] != current_task_id:
+                    current_app.control.revoke(task['id'], terminate=True)
+                    logger.info(current_task_id)
+                    logger.info(f"Revoked task {task['id']} on {worker}")
+
+
+
+@shared_task(bind = True)
+def scrape_update_product_prices(self):
+    
+    kill_similar_tasks(self.request.id,self.name)
+    
     products = Product.objects.filter(target_link__isnull=False)
     logger.info(products.count())
     logger.info('###########Scrap Start###########')
@@ -88,13 +108,13 @@ def scrape_update_product_prices():
     logger.info('###########Scrap Ended###########')
 
 
-
-
-
-
-
-@shared_task
-def web_update_all_prices_task():
+@shared_task(bind = True)
+def web_update_all_prices_task(self):
+    
+    
+    kill_similar_tasks(self.request.id,self.name)
+    
+    
     products = Product.objects.filter(
         target_link__isnull=False,
         crawl_status__in=['Success', 'Call Us Price']
@@ -158,3 +178,5 @@ def update_website_price(product,):
         logger.info(response.content.decode('utf-8'))
         logger.info(f'Error updating price for Product ID {product_id} : {response.status_code}')
     return
+
+
