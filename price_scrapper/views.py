@@ -315,8 +315,8 @@ def update_product_list(request):
 @login_required(login_url="/accounts/login/")
 def woocomerce_login(request):
 
-    api_key = 'ck_a862f3205a9991d1bed42d48104616f92fa702e7'  # Replace with your actual API key
-    api_secret = 'cs_fe83d949d4d90a1f2fba42b903ab87b256543f06'  # Replace with your actual API secret
+    api_key = ''  # Replace with your actual API key
+    api_secret = ''  # Replace with your actual API secret
     auth_string = f'{api_key}:{api_secret}'
     auth_header = 'Basic ' + base64.b64encode(auth_string.encode()).decode()
     headers = {

@@ -17,11 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from price_scrapper import urls as scrapper_urls
+from web import urls as web_urls
 from oneclickproduct import urls as oneclickproduct_urls
-urlpatterns = [
-    path('admin/', admin.site.urls),
 
+
+urlpatterns = [
+    path('',include(web_urls) ),
     path('',include(scrapper_urls) ),
     path('accounts/', include('allauth.urls')),
     path('ocp/',include(oneclickproduct_urls) ),
 ]
+

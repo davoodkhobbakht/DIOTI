@@ -1,0 +1,467 @@
+<!-- ============================================ -->
+<!-- 5. BASE.HTML (قالب اصلی) -->
+<!-- ============================================ -->
+<!-- templates/web/base.html -->
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    
+    <title>{% block title %}DIOTI | مجله تخصصی سئو و طراحی وب{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}مجله تخصصی سئو، طراحی وب، تولید محتوا و بازاریابی دیجیتال{% endblock %}">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="{% block og_title %}DIOTI{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}مجله تخصصی سئو و طراحی وب{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% block og_image %}/static/images/og-image.jpg{% endblock %}">
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    
+    <!-- CSS 
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdir/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">-->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', system-ui, sans-serif;
+            background: #000;
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* انیمیشن‌های اصلی */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 5px rgba(255,255,255,0.3); }
+            50% { text-shadow: 0 0 20px rgba(255,255,255,0.6); }
+        }
+        
+        /* هدر */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .header.scrolled {
+            padding: 0.5rem 2rem;
+            background: rgba(0,0,0,0.98);
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+         /* انیمیشن‌های اصلی */
+        @keyframes fadeInBot {
+            0% { opacity: 0; transform: translateY(200px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes fadeInI {
+            0% { opacity: 0; transform: translateX(-60px); }
+            100% { opacity: 1; }
+        }
+        @keyframes slideInRight {
+            0% { opacity: 0; transform: translateX(80px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 5px #fff; }
+            50% { text-shadow: 0 0 20px #fff, 0 0 30px #fff; }
+            100% { text-shadow: 0 0 5px #fff; }
+        }
+        @keyframes borderFlow {
+            0% { border-image: linear-gradient(45deg, #fff, #333) 1; }
+            50% { border-image: linear-gradient(45deg, #333, #fff) 1; }
+            100% { border-image: linear-gradient(45deg, #fff, #333) 1; }
+        }
+        /* حروف لوگو */
+        .DLetter, .ILetter, .OLetter, .TLetter, .I2Letter {
+            color: #ffffff;
+            position: absolute;
+            top:0px;
+            animation-duration: 2s;
+            animation-name: fadeIn;
+            animation-fill-mode: backwards;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -2px;
+        }
+        .DLetter { left: 17px; animation-delay: 0.5s; }
+        .ILetter { left: 40px ; animation-name: fadeInI; animation-delay: 0.8s; }
+        .OLetter { left: 52px; animation-name: fadeInI; animation-delay: 1.1s; }
+        .TLetter { left: 77px; animation-name: fadeInI; animation-delay: 1.3s; }
+        .I2Letter {left: 100px;animation-name: fadeInI; animation-delay: 1.4s; }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            text-decoration: none;
+            color: #fff;
+            
+        }
+        
+        .logo span {
+            color: #fff;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            position: relative;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #fff;
+            transition: 0.3s;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .search-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .search-btn:hover {
+            border-color: #fff;
+            transform: scale(1.05);
+        }
+        
+        /* منوی موبایل */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        /* محتوای اصلی */
+        .main-content {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+        
+        /* فوتر */
+        .footer {
+            background: #050505;
+            padding: 3rem 2rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 4rem;
+        }
+        
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer-col h4 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .footer-col a, .footer-col p {
+            color: #888;
+            text-decoration: none;
+            line-height: 2;
+            font-size: 0.85rem;
+            transition: 0.3s;
+            display: block;
+        }
+        
+        .footer-col a:hover {
+            color: #fff;
+            transform: translateX(5px);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            font-size: 1.2rem;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: #555;
+            font-size: 0.75rem;
+        }
+        
+        /* صفحه‌بندی */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 3rem 0;
+        }
+        
+        .pagination a, .pagination span {
+            padding: 0.5rem 1rem;
+            background: #111;
+            border: 1px solid #222;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        
+        .pagination a:hover {
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        .pagination .current {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+        
+        /* ریسپانسیو */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #000;
+                flex-direction: column;
+                padding: 1rem;
+                border-bottom: 1px solid #222;
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .header {
+                padding: 0.8rem 1rem;
+            }
+        }
+        
+        /* کلاس‌های کمکی */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 30px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: #fff;
+            color: #000;
+            transform: translateY(-2px);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="nav-container">
+            <div class="nav-links" id="navLinks">
+                <a href="/">خانه</a>
+                <a href="/#blog">وبلاگ</a>
+                <a href="/about/">درباره ما</a>
+                <a href="/contact/">تماس</a>
+                <button class="search-btn" onclick="openSearch()">جستجو 🔍</button>
+            </div>
+            <a href="/" class="logo">
+                <h1 class="DLetter">D</h1>
+                <h1 class="ILetter">I</h1>
+                <h1 class="OLetter">O</h1>
+                <h1 class="TLetter">T</h1>
+                <h1 class="I2Letter">I</h1>
+            </a>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+            
+            
+        </div>
+    </header>
+    
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <h4>DIOTI</h4>
+                <p>خلاقیت در ساده‌ترین شکل خود. طراحی‌هایی که به یاد می‌مانند.</p>
+                <div class="social-links">
+                    <a href="#">📷</a>
+                    <a href="#">🐦</a>
+                    <a href="#">💼</a>
+                    <a href="#">📘</a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>دسترسی سریع</h4>
+                <a href="/">خانه</a>
+                <a href="/#blog">وبلاگ</a>
+                <a href="/about/">درباره ما</a>
+                <a href="/contact/">تماس با ما</a>
+            </div>
+            <div class="footer-col">
+                <h4>تماس</h4>
+                <p>info@dioti.com</p>
+                <p>+98 21 1234 5678</p>
+                <p>تهران، خیابان ولیعصر</p>
+            </div>
+            <div class="footer-col">
+                <h4>تبلیغات</h4>
+                <a href="#">درخواست همکاری</a>
+                <a href="#">قیمت‌ها</a>
+                <a href="#">اینفوگرافیک رسانه</a>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2025 DIOTI Creative Agency. تمامی حقوق محفوظ است.
+        </div>
+    </footer>
+    
+    <!-- مودال جستجو -->
+    <div id="searchModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.98); z-index:2000; align-items:center; justify-content:center;">
+    <div style="max-width:600px; width:90%;">
+        <form action="/search/" method="get">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" name="q" placeholder="جستجو در مطالب..." 
+                       style="flex:1; padding:1rem; background:#111; border:1px solid #333; color:#fff; border-radius:10px; font-size:1rem;">
+                <button type="submit" style="padding:0 1.5rem; background:#fff; color:#000; border:none; border-radius:10px; cursor:pointer;">
+                    🔍
+                </button>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem; justify-content: center;">
+                <select name="category" style="background:#111; border:1px solid #333; color:#fff; padding:0.5rem; border-radius:5px;">
+                    <option value="">همه دسته‌ها</option>
+                    {% for cat in top_categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="order" style="background:#111; border:1px solid #333; color:#fff; padding:0.5rem; border-radius:5px;">
+                    <option value="-published_at">جدیدترین</option>
+                    <option value="views_count">پربازدیدترین</option>
+                    <option value="seo_score">بهترین سئو</option>
+                </select>
+            </div>
+        </form>
+        <button onclick="closeSearch()" style="margin-top:1rem; background:transparent; border:none; color:#fff; cursor:pointer; width:100%;">
+            ✖ بستن
+        </button>
+    </div>
+</div>
+    
+    <script>
+        // هدر اسکرول
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+        
+        // منوی موبایل
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('active');
+        });
+        
+        function openSearch() {
+            document.getElementById('searchModal').style.display = 'flex';
+        }
+        
+        function closeSearch() {
+            document.getElementById('searchModal').style.display = 'none';
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!-- ============================================ -->
+<!-- 7. POST_DETAIL.HTML (جزئیات پست) -->
+<!-- ============================================ -->
+<!-- templates/core/post_detail.html -->
+
+{% extends 'web/base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} | DIOTI{% endblock %}
+{% block meta_description %}{{ post.meta_description|default:post.excerpt|striptags|truncatewords:30 }}{% endblock %}
+{% block og_title %}{{ post.title }}{% endblock %}
+{% block og_description %}{{ post.meta_description|default:post.excerpt|striptags|truncatewords:30 }}{% endblock %}
+<!-- نمایش پیام‌های سیستم -->
+{% if messages %}
+<div style="margin-bottom: 1rem;">
+    {% for message in messages %}
+    <div style="padding: 0.8rem; background: {% if message.tags == 'success' %}#0a3a2a{% else %}#3a1a1a{% endif %}; border-radius: 8px; margin-bottom: 0.5rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 3rem;">
+        <!-- ستون اصلی: محتوا -->
+        <article>
+            <!-- دسته‌بندی و برچسب‌ها -->
+            <div style="margin-bottom: 1rem;">
+                <a href="{{ post.category.get_absolute_url }}" style="color: #888; text-decoration: none; font-size: 0.85rem;">
+                    {{ post.category.name }}
+                </a>
+                {% for tag in post.tags.all %}
+                <a href="{{ tag.get_absolute_url }}" style="color: #555; text-decoration: none; font-size: 0.75rem; margin-right: 0.5rem;">
+                    #{{ tag.name }}
+                </a>
+                {% endfor %}
+            </div>
+            
+            <!-- عنوان -->
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem; line-height: 1.3;">
+                {{ post.title }}
+            </h1>
+            
+            <!-- متادیتا -->
+            <div style="display: flex; gap: 1rem; color: #666; font-size: 0.85rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <span>📅 {{ post.published_at|date:"Y/m/d" }}</span>
+                <span>👁 {{ post.views_count }} بازدید</span>
+                <span>💬 {{ post.comments.count }} نظر</span>
+                <span>⭐ امتیاز سئو: {{ post.seo_score }}/100</span>
+            </div>
+            
+            <!-- تصویر شاخص -->
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width: 100%; border-radius: 15px; margin-bottom: 2rem;">
+            {% endif %}
+            
+            <!-- محتوای اصلی -->
+            <div style="color: #ccc; line-height: 1.8; font-size: 1.05rem;">
+                {{ post.content|safe }}
+            </div>
+            
+            <!-- کلمه کلیدی تمرکز -->
+            {% if post.focus_keyword %}
+            <div style="margin-top: 2rem; padding: 1rem; background: #0a0a0a; border-radius: 10px;">
+                <strong>🔑 کلمه کلیدی این مطلب:</strong> 
+                <span style="color: #888;">{{ post.focus_keyword }}</span>
+            </div>
+            {% endif %}
+            
+            <!-- بخش نظرات -->
+            <div style="margin-top: 3rem;">
+                <h3 style="margin-bottom: 1.5rem;">💬 نظرات ({{ comments.count }})</h3>
+                
+                {% for comment in comments %}
+                <div style="background: #0a0a0a; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                    <strong>{{ comment.author_name }}</strong>
+                    <span style="color: #666; font-size: 0.7rem;">{{ comment.created_at|date:"Y/m/d H:i" }}</span>
+                    <p style="margin-top: 0.5rem; color: #aaa;">{{ comment.content }}</p>
+                </div>
+                {% empty %}
+                <p style="color: #666;">هنوز نظری ثبت نشده است. اولین نفری باشید که نظر می‌دهید!</p>
+                {% endfor %}
+                
+                <!-- فرم نظر -->
+                <!-- فرم نظر با اعتبارسنجی سمت کلاینت -->
+                <div style="margin-top: 2rem; background: #0a0a0a; padding: 1.5rem; border-radius: 15px;">
+                    <h4 style="margin-bottom: 1rem;">💬 نظر خود را بنویسید</h4>
+                    
+                    <form method="post" id="commentForm">
+                        {% csrf_token %}
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                {{ comment_form.author_name }}
+                                {% if comment_form.author_name.errors %}
+                                <div style="color: #ff6666; font-size: 0.75rem; margin-top: 0.3rem;">
+                                    {{ comment_form.author_name.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {{ comment_form.author_email }}
+                                {% if comment_form.author_email.errors %}
+                                <div style="color: #ff6666; font-size: 0.75rem; margin-top: 0.3rem;">
+                                    {{ comment_form.author_email.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            {{ comment_form.author_website }}
+                            {% if comment_form.author_website.errors %}
+                            <div style="color: #ff6666; font-size: 0.75rem; margin-top: 0.3rem;">
+                                {{ comment_form.author_website.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            {{ comment_form.content }}
+                            {% if comment_form.content.errors %}
+                            <div style="color: #ff6666; font-size: 0.75rem; margin-top: 0.3rem;">
+                                {{ comment_form.content.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Honeypot field -->
+                        {{ comment_form.website_trap }}
+                        
+                        <button type="submit" class="btn" id="submitComment">
+                            ارسال نظر
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </article>
+        
+        <!-- ستون سایدبار: تبلیغات -->
+        <aside>
+            <!-- تبلیغات 1 -->
+            <div style="background: #0a0a0a; border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem; text-align: center;">
+                <h4 style="margin-bottom: 1rem;">تبلیغات شما</h4>
+                <div style="background: #111; padding: 2rem; border-radius: 10px; color: #666;">
+                    [ کد تبلیغات ]
+                </div>
+            </div>
+            
+            <!-- پست‌های مرتبط -->
+            {% if related_posts %}
+            <div style="background: #0a0a0a; border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 1rem;">📖 مطالب مرتبط</h4>
+                {% for related in related_posts %}
+                <a href="{{ related.get_absolute_url }}" style="display: block; padding: 0.7rem 0; border-bottom: 1px solid #1a1a1a; color: #ccc; text-decoration: none; transition: 0.3s;">
+                    {{ related.title }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- تبلیغات 2 -->
+            <div style="background: #0a0a0a; border-radius: 15px; padding: 1.5rem; text-align: center;">
+                <h4 style="margin-bottom: 1rem;">حمایت از ما</h4>
+                <div style="background: #111; padding: 1rem; border-radius: 10px;">
+                    <button class="btn" style="padding: 0.5rem 1rem;">حمایت مالی 💖</button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+<script>
+// اعتبارسنجی سمت کلاینت فرم نظر
+document.getElementById('commentForm')?.addEventListener('submit', function(e) {
+    const name = document.getElementById('comment-name').value.trim();
+    const email = document.getElementById('comment-email').value.trim();
+    const content = document.getElementById('comment-content').value.trim();
+    
+    if (name.length < 3) {
+        e.preventDefault();
+        alert('نام باید حداقل ۳ کاراکتر باشد.');
+        return false;
+    }
+    
+    if (!email.includes('@') || !email.includes('.')) {
+        e.preventDefault();
+        alert('لطفا یک ایمیل معتبر وارد کنید.');
+        return false;
+    }
+    
+    if (content.length < 5) {
+        e.preventDefault();
+        alert('متن نظر باید حداقل ۵ کاراکتر باشد.');
+        return false;
+    }
+    
+    if (content.length > 1000) {
+        e.preventDefault();
+        alert('متن نظر نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.');
+        return false;
+    }
+    
+    // جلوگیری از ارسال دوباره
+    const submitBtn = document.getElementById('submitComment');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'در حال ارسال...';
+});
+</script>
